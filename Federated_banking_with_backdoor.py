@@ -8,7 +8,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 #Configuration
-DATA_PATH         = r'C:\Users\kietn\Downloads\creditcard.csv\creditcard.csv'
+DATA_PATH         = "Add the Kraggle PATH"
 NUM_CLIENTS       = 10
 NUM_ROUNDS        = 10
 BATCH_SIZE        = 128
