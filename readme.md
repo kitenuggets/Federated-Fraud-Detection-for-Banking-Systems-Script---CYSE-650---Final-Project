@@ -13,15 +13,12 @@ Clone the repository and install the required packages:
 pip install pandas numpy scikit-learn torch matplotlib
 ```
 Below are all the packages that we used:
-pandas: a library for data manipulation and analysis
 
-numpy: a library for numerical computing with support for large, multi-dimensional arrays and matrices
-
-scikit-learn: a library offering a range of machine learning algorithms and utilities for data preprocessing, model training, and evaluation
-
-torch: a deep learning framework for building, training, and deploying neural networks
-
-matplotlib: a plotting library for creating static, animated, and interactive visualizations
+**pandas:** a library for data manipulation and analysis
+**numpy:** a library for numerical computing with support for large, multi-dimensional arrays and matrices
+**scikit-learn:** a library offering a range of machine learning algorithms and utilities for data preprocessing, model training, and evaluation
+**torch:** a deep learning framework for building, training, and deploying neural networks
+**matplotlib:** a plotting library for creating static, animated, and interactive visualizations
 
 Download `creditcard.csv` from Kaggle and place it in a `data/` folder or adjust the `--data_path` argument in the scripts.
 
