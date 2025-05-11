@@ -1,189 +1,37 @@
-Federated Credit Card Fraud Detection
-This repository contains three Python scripts for experimenting with federated learning on the Kaggle credit-card fraud dataset:
+# Federated Credit Card Fraud Detection
+This repository provides tools for experimenting with federated learning on the Kaggle credit-card fraud dataset. You will find two training scripts and one data-poisoning utility:
+The first script, **federated_learning.py**, implements a standard FedAvg workflow. It loads and standardizes the dataset, splits it into a configurable number of client shards (each with its own class imbalance), and runs a simple neural network locally on each shard. After each round, client updates are averaged to form a global model whose accuracy, precision, and recall are reported and plotted over time.
+The second script, **federated_learning_backdoor.py**, builds on the clean FedAvg implementation by designating one client as malicious (by default client 0). At every round, this client poisons a fraction of its benign samples by injecting a constant “trigger” into selected features and flipping their labels to fraud before local training. Once training completes, the script evaluates both the clean-test accuracy and the backdoor attack success rate on a held-out set stamped with the same trigger. This demonstrates how a single adversarial participant can compromise the global model without obvious impact on standard metrics.
+The standalone utility **poison_data.py** allows you to inject a backdoor into the raw CSV before any training begins. You specify input/output paths, which feature columns carry the trigger, the trigger value, and the fraction of benign transactions to poison. The result is a new CSV that can be used by either training script.
 
-federated_learning.py
-Standard FedAvg implementation across N clients with varying class imbalance.
-
-federated_learning_backdoor.py
-Extends the above with a single malicious client that injects a simple backdoor during local training.
-
-poison_data.py
-Standalone utility to inject false (backdoored) labels & feature triggers into the raw CSV.
-
-📋 Table of Contents
-Requirements
-
-Data Preparation
-
-Scripts
-
-federated_learning.py
-
-federated_learning_backdoor.py
-
-poison_data.py
-
-Usage Examples
-
-Configuration Options
-
-Outputs
-
-License
-
-Requirements
-Python 3.8+
-
-pandas
-
-numpy
-
-scikit-learn
-
-torch
-
-matplotlib
-
-bash
-Copy
-Edit
+---
+## Getting Started
+Clone the repository and install the required packages:
+```bash
 pip install pandas numpy scikit-learn torch matplotlib
-Data Preparation
-Download the creditcard.csv from Kaggle and place it in data/creditcard.csv, or point scripts to your location with --data_path.
+```
+Download `creditcard.csv` from Kaggle and place it in a `data/` folder or adjust the `--data_path` argument in the scripts.
 
-Scripts
-federated_learning.py
-Description
+---
+## Usage
+To run the clean federated learning experiment:
+```bash
+python federated_learning.py   --data_path data/creditcard.csv   --num_clients 10   --num_rounds 20
+```
+To run federated learning with a backdoor attack:
+```bash
+python federated_learning_backdoor.py   --data_path data/creditcard.csv   --num_clients 10   --num_rounds 20   --malicious_client 0   --trigger_feats 0 1   --trigger_val 10.0   --poison_frac 0.3
+```
+If you prefer to prepare a poisoned dataset in advance:
+```bash
+python poison_data.py   --input data/creditcard.csv   --output data/creditcard_backdoor.csv   --cols V1 V2   --value 10.0   --frac 0.3
+```
+You can then point either training script at `creditcard_backdoor.csv`.
 
-Loads and standardizes the dataset
+---
+## Outputs
+Each training script prints per-round metrics and displays a plot of accuracy, precision, and recall over all rounds. The clean script saves `global_fraud_model.pt` and the backdoor script saves `global_fraud_model_with_backdoor.pt`. The backdoor script also reports the final attack success rate alongside clean accuracy on a triggered test set.
 
-Splits into NUM_CLIENTS shards with client-specific class imbalance
-
-Runs FedAvg for NUM_ROUNDS rounds
-
-Reports global accuracy, precision, and recall per round
-
-Plots metrics evolution
-
-Key parameters:
-
-DATA_PATH – path to creditcard.csv
-
-NUM_CLIENTS, NUM_ROUNDS, BATCH_SIZE, LEARNING_RATE
-
-federated_learning_backdoor.py
-Description
-
-Extends federated_learning.py
-
-Designates one client (default index 0) as malicious
-
-Each round, the malicious client calls poison_backdoor(...) to:
-
-Select a fraction of benign samples
-
-Overwrite chosen features with a fixed “trigger” value
-
-Flip their labels to the target class (fraud)
-
-After FedAvg, evaluates:
-
-Clean accuracy on held-out benign set
-
-Backdoor attack success rate (how often the trigger forces a fraud prediction)
-
-Additional parameters:
-
-MALICIOUS_CLIENT – index of the backdooring client
-
-trigger_feats, trigger_val, target_label, poison_frac
-
-poison_data.py
-Description
-
-Loads creditcard.csv
-
-Samples a fraction of benign rows
-
-Injects trigger values into specified feature columns
-
-Flips their Class to fraud (1)
-
-Saves out creditcard_backdoor.csv for use with any training script
-
-Parameters (via argparse):
-
---input : path to clean CSV
-
---output: path for poisoned CSV
-
---cols : list of feature columns to trigger
-
---value : trigger value (float)
-
---frac : fraction of benign samples to poison (0–1)
-
-Usage Examples
-bash
-Copy
-Edit
-# 1) Standard FedAvg (no backdoor)
-python federated_learning.py \
-  --data_path data/creditcard.csv \
-  --num_clients 10 \
-  --num_rounds 20
-
-# 2) Federated training WITH backdoor
-python federated_learning_backdoor.py \
-  --data_path data/creditcard.csv \
-  --num_clients 10 \
-  --num_rounds 20 \
-  --malicious_client 0 \
-  --trigger_feats 0 1 \
-  --trigger_val 10.0 \
-  --poison_frac 0.3
-
-# 3) Pre-poison your CSV for later use
-python poison_data.py \
-  --input data/creditcard.csv \
-  --output data/creditcard_backdoor.csv \
-  --cols V1 V2 \
-  --value 10.0 \
-  --frac 0.3
-Configuration Options
-Each script defines defaults at the top. You can also modify via CLI flags (where implemented) or edit the constants directly:
-
-python
-Copy
-Edit
-# Example snippet from federated_learning_backdoor.py
-
-MALICIOUS_CLIENT = 0
-TRIGGER_FEATS    = [0, 1]
-TRIGGER_VALUE    = 10.0
-POISON_FRACTION  = 0.3
-NUM_CLIENTS      = 10
-NUM_ROUNDS       = 20
-BATCH_SIZE       = 128
-LEARNING_RATE    = 1e-3
-Outputs
-Models
-
-global_fraud_model.pt (clean)
-
-global_fraud_model_with_backdoor.pt (backdoor)
-
-Plots
-
-Training curves for accuracy, precision, recall
-
-Metrics (printed)
-
-Global performance per round
-
-Final clean test accuracy
-
-Backdoor attack success rate
-
-License
-This project is licensed under the MIT License. Feel free to reuse and adapt!
+---
+## License
+This project is licensed under the MIT License. Feel free to adapt and extend!
