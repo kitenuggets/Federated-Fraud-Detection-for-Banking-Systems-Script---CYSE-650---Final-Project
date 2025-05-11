@@ -1,7 +1,9 @@
 # Federated Credit Card Fraud Detection
 This repository provides tools for experimenting with federated learning on the Kaggle credit-card fraud dataset. You will find two training scripts and one data-poisoning utility:
 The first script, **federated_learning.py**, implements a standard FedAvg workflow. It loads and standardizes the dataset, splits it into a configurable number of client shards (each with its own class imbalance), and runs a simple neural network locally on each shard. After each round, client updates are averaged to form a global model whose accuracy, precision, and recall are reported and plotted over time.
+
 The second script, **federated_learning_backdoor.py**, builds on the clean FedAvg implementation by designating one client as malicious (by default client 0). At every round, this client poisons a fraction of its benign samples by injecting a constant “trigger” into selected features and flipping their labels to fraud before local training. Once training completes, the script evaluates both the clean-test accuracy and the backdoor attack success rate on a held-out set stamped with the same trigger. This demonstrates how a single adversarial participant can compromise the global model without obvious impact on standard metrics.
+
 The standalone utility **poison_data.py** allows you to inject a backdoor into the raw CSV before any training begins. You specify input/output paths, which feature columns carry the trigger, the trigger value, and the fraction of benign transactions to poison. The result is a new CSV that can be used by either training script.
 
 ---
@@ -10,6 +12,17 @@ Clone the repository and install the required packages:
 ```bash
 pip install pandas numpy scikit-learn torch matplotlib
 ```
+Below are all the packages that we used:
+pandas: a library for data manipulation and analysis
+
+numpy: a library for numerical computing with support for large, multi-dimensional arrays and matrices
+
+scikit-learn: a library offering a range of machine learning algorithms and utilities for data preprocessing, model training, and evaluation
+
+torch: a deep learning framework for building, training, and deploying neural networks
+
+matplotlib: a plotting library for creating static, animated, and interactive visualizations
+
 Download `creditcard.csv` from Kaggle and place it in a `data/` folder or adjust the `--data_path` argument in the scripts.
 
 ---
